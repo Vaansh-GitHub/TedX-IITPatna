@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --watch . --ext ts,json --ignore dist --exec tsx index.ts",
+    "worker": "tsx services/utils/redis_queue/worker.ts",
     "build": "tsc",
     "start": "nodemon dist/index.js"
   },

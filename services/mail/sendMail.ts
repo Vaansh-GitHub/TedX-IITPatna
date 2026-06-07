@@ -18,11 +18,12 @@ export async function sendEmail(job:SendEmailJob)
 
         if(info.rejected?.length)
         {
-            throw new Error();
+            throw new Error(info.rejected.join(", ") || "Email rejected by SMTP server");
         }
         return {
             status:200,
             message:"Message Sent Successfully!",
+            messageId:info.messageId,
         }
     }catch(err:unknown)
     {
@@ -31,7 +32,7 @@ export async function sendEmail(job:SendEmailJob)
             console.log("Error in Sending Mail");
             return {
                 status:400,
-                message:"Error in Sending Mail",
+                    message:err.message,
             };
         }
     }
@@ -49,12 +50,16 @@ async function emailJob(job:SendEmailJob)
         });
     
         const template = await EmailTemplateModel.findOne({name:job.templateName});
+
+        if (!template) {
+            throw new Error(`Email template not found: ${job.templateName}`);
+        }
     
         const data = {
             from:process.env.MAIL_FROM,
             to:job.recipientEmail,
             subject:job.subject,
-            html:template?.htmlBody,
+            html:template.htmlBody,
             attachments,
         }
         return data;
@@ -62,7 +67,7 @@ async function emailJob(job:SendEmailJob)
         if(err instanceof Error)
         {
             console.log("Error in fetching data for mail");
-            return null;
+            throw err;
         }
     }
 }
