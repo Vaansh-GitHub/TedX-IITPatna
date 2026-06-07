@@ -1,9 +1,12 @@
 import express from 'express';
 import dotenv from "dotenv";
 import connextDB from "./database/connect.js";
+
 import adminRouter from "./routes/admin.routes.js";
 import productRouter from "./routes/product.routes.js";
 import cartRouter from "./routes/cart.routes.js";
+import mailRouter from "./routes/mail.routes.js";
+
 dotenv.config({ path: "./config/.env" });
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +22,7 @@ app.use(express.urlencoded({extended: true}));
 app.use("/admin/products", adminRouter);
 app.use("/products", productRouter);
 app.use("/cart", cartRouter);
+app.use("/email", mailRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on Port ${PORT}`);
