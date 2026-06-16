@@ -2,14 +2,19 @@ import nodemailer from "nodemailer";
 import transport from "./transport.js";
 import type{ SendEmailJob } from "../../interface/mail.interface.js";
 import dotenv from "dotenv";
-import path from "path";
 import { EmailTemplateModel } from "../../model/email_template.model.js";
 
-dotenv.config({ path: path.resolve(process.cwd(), "config/.env") });
+dotenv.config({
+  path: "../../config/.env",
+});
 
 export async function sendEmail(job:SendEmailJob)
 {
     try{
+        transport.verify()
+        .then(() => console.log("SMTP verified"))
+        .catch(err => console.error("SMTP verify failed:", err));
+        
         const data = await emailJob(job);
         if(!data) {
             throw new Error("No email data");

@@ -2,15 +2,35 @@ import express from 'express';
 
 import { sendError, sendSuccess } from '../scripts/controllerHelpers.js';
 import type{ SendEmailJob } from '../interface/mail.interface.js';
-import { enqueueEmail } from '../services/utils/redis_queue/producer.js';
+import { MailLogModel } from '../model/mail.model.js';
+import { myQueue } from '../services/redis_queue/queue.js';
 
 export async function sendEmailHandler(req:express.Request, res:express.Response) {
     try {
         const job = req.body as SendEmailJob;
 
-        await enqueueEmail(job);
+        const logData: Record<string, any> = {
+            recipientEmail: job.recipientEmail,
+            subject: job.subject,
+            templateName: job.templateName,
+            status: "queued",
+        };
+        
+        if (job.metadata !== undefined) {
+            logData.metadata = job.metadata;
+        }
+        
+        const mailLog = await MailLogModel.create(logData);
 
-        return sendSuccess(res, 202, 'Email job queued successfully');
+        const emailJob = await myQueue.add('SEND_EMAIL', { ...job, logId: mailLog._id }, {
+            attempts: 5,
+            backoff: {
+                type: "exponential",
+                delay:5000,
+            }
+        });
+
+        return sendSuccess(res, 200, 'Email job enqueued successfully', { jobId: emailJob.id });
     } catch (err: unknown) {
         console.error(err);
         return sendError(res, 500, 'Internal Server Error');

@@ -13,6 +13,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@bull-board/api": "^8.0.0",
+    "@bull-board/express": "^8.0.0",
     "@types/nodemailer": "^8.0.0",
     "bullmq": "^5.78.0",
     "dotenv": "^17.4.2",
